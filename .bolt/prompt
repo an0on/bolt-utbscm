@@ -5,3 +5,5 @@ By default, this template supports JSX syntax with Tailwind CSS classes, React h
 Use icons from lucide-react for logos.
 
 Use stock photos from unsplash where appropriate, only valid URLs you know exist. Do not download the images, only link to them in image tags.
+
+When i write "change nothing else" the funktion like it works right now is what i want. the other instructions are on top of that or new features wich have to be integrated without loosing any functionality to this point.

@@ -40,8 +40,8 @@ export function ContestManagement() {
       setEditingCategory(categoryToRemove);
       return;
     }
-    removeCategory(categoryToRemove);
-    setSelectedCategories(selectedCategories.filter(c => c !== categoryToRemove));
+    setShowWarningModal(true);
+    setEditingCategory(categoryToRemove);
   };
 
   const handleWarningModalClose = () => {
@@ -69,6 +69,17 @@ export function ContestManagement() {
     setShowHeatConfigForm(prev => ({ ...prev, [category]: !prev[category] }));
   };
 
+  const getCategoryLabel = (category: Category): string => {
+    switch (category) {
+      case 'A-SPONSORED':
+        return 'A - Sponsored Rider';
+      case 'B-AMATEUR':
+        return 'B - Amateur Rider';
+      default:
+        return category;
+    }
+  };
+
   return (
     <div className="p-6">
       <h2 className="text-2xl font-bold mb-6">Contest Management</h2>
@@ -84,37 +95,56 @@ export function ContestManagement() {
         <thead>
           <tr>
             <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Category</th>
+            <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
+              First Round Size
+            </th>
+            <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
+              Second Round Qualifiers
+            </th>
+            <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
+              Second Round Size
+            </th>
+            <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
+              Finalists
+            </th>
             <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Actions</th>
           </tr>
         </thead>
         <tbody>
-          {selectedCategories.map((category) => (
-            <tr key={category}>
-              <td className="px-6 py-4 whitespace-nowrap">{category}</td>
-              <td className="px-6 py-4">
-                <div className="flex space-x-2">
-                  <button
-                    onClick={() => handleRemoveCategory(category)}
-                    className="px-2 py-1 bg-red-500 hover:bg-red-600 text-white rounded-md"
-                  >
-                    Remove
-                  </button>
-                  <button
-                    onClick={() => handleToggleHeatConfigForm(category)}
-                    className="px-2 py-1 bg-blue-500 hover:bg-blue-600 text-white rounded-md"
-                  >
-                    Configure Heats
-                  </button>
-                  <button
-                    onClick={() => handleStartCategory(category)}
-                    className="px-2 py-1 bg-accent-orange hover:bg-accent-orange/80 text-white rounded-md"
-                  >
-                    Start
-                  </button>
-                </div>
-              </td>
-            </tr>
-          ))}
+          {selectedCategories.map((category) => {
+            const config = heatConfigs[category] || { firstRoundSize: 5, secondRoundQualifiers: 3, secondRoundSize: 2, finalists: 1 };
+            return (
+              <tr key={category}>
+                <td className="px-6 py-4 whitespace-nowrap">{getCategoryLabel(category)}</td>
+                <td className="px-6 py-4 whitespace-nowrap">{config.firstRoundSize}</td>
+                <td className="px-6 py-4 whitespace-nowrap">{config.secondRoundQualifiers}</td>
+                <td className="px-6 py-4 whitespace-nowrap">{config.secondRoundSize}</td>
+                <td className="px-6 py-4 whitespace-nowrap">{config.finalists}</td>
+                <td className="px-6 py-4">
+                  <div className="flex space-x-2">
+                    <button
+                      onClick={() => handleRemoveCategory(category)}
+                      className="px-2 py-1 bg-red-500 hover:bg-red-600 text-white rounded-md"
+                    >
+                      Remove
+                    </button>
+                    <button
+                      onClick={() => handleToggleHeatConfigForm(category)}
+                      className="px-2 py-1 bg-blue-500 hover:bg-blue-600 text-white rounded-md"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => handleStartCategory(category)}
+                      className="px-2 py-1 bg-accent-orange hover:bg-accent-orange/80 text-white rounded-md"
+                    >
+                      Start
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
       {showAddCategoryModal && (
@@ -122,8 +152,10 @@ export function ContestManagement() {
       )}
       {showWarningModal && (
         <WarningModal
-          title="Warning: Participants with Paid Status"
-          message={`Removing this category will affect the following participants who have already paid: ${participants.filter(p => p.paidCategories.includes(editingCategory!)).map(p => p.firstName + ' ' + p.lastName).join(', ')}. Are you sure you want to proceed?`}
+          title={editingCategory ? `Remove ${getCategoryLabel(editingCategory)}?` : "Warning"}
+          message={editingCategory
+            ? `Are you sure you want to remove the ${getCategoryLabel(editingCategory)} category? This action cannot be undone.`
+            : `Removing this category will affect the following participants who have already paid: ${participants.filter(p => p.paidCategories.includes(editingCategory!)).map(p => p.firstName + ' ' + p.lastName).join(', ')}. Are you sure you want to proceed?`}
           onConfirm={handleWarningModalConfirm}
           onCancel={handleWarningModalClose}
         />
